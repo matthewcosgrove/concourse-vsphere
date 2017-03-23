@@ -24,7 +24,7 @@ resources:
 - name: concourse-vsphere
   type: git
   source:
-    uri: https://github.com/rahul-kj/concourse-vsphere
+    uri: https://github.com/c0-ops/concourse-vsphere
     branch: master
 
 - name: pivnet-er-product
@@ -36,7 +36,7 @@ resources:
 - name: customer-repo
   type: git
   source:
-    uri: https://github.com/rahul-kj/sample-customer-repo
+    uri: https://github.com/c0-ops/sample-customer-repo
     branch: master
 
 jobs:

@@ -37,13 +37,13 @@ resources:
 - name: concourse-vsphere
   type: git
   source:
-    uri: https://github.com/rahul-kj/concourse-vsphere
+    uri: https://github.com/c0-ops/concourse-vsphere
     branch: master
 
 - name: customer-repo
   type: git
   source:
-    uri: https://github.com/rahul-kj/sample-customer-repo
+    uri: https://github.com/c0-ops/sample-customer-repo
     branch: master
 
 - name: pivnet-opsman-product

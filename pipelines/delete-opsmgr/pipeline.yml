@@ -23,7 +23,7 @@ resources:
 - name: concourse-vsphere
   type: git
   source:
-    uri: https://github.com/rahul-kj/concourse-vsphere
+    uri: https://github.com/c0-ops/concourse-vsphere
     branch: master
 
 jobs:
