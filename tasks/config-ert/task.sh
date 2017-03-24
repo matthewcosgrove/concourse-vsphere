@@ -12,17 +12,8 @@ PRODUCT_VERSION=`echo $CF_RELEASE | cut -d"|" -f3 | tr -d " "`
 $CMD -t https://$OPS_MGR_HOST -u $OPS_MGR_USR -p $OPS_MGR_PWD -k stage-product -p $PRODUCT_NAME -v $PRODUCT_VERSION
 
 function fn_ert_balanced_azs {
-  local ERT_AZS
-  for v in $(echo $1 | sed "s/,/ /g")
-  do
-    if [[ -z "$ERT_AZS" ]]; then
-      ERT_AZS={\"name\":\"$v\"}
-    else
-      ERT_AZS+=,{\"name\":\"$v\"}
-    fi
-  done
-
-  echo $ERT_AZS
+  local azs_csv=$1
+  echo $azs_csv | awk -F "," -v braceopen='{' -v braceclose='}' -v name='"name":' -v quote='"' -v OFS='"},{"name":"' '$1=$1 {print braceopen name quote $0 quote braceclose}'
 }
 
 ERT_AZS=$(fn_ert_balanced_azs $DEPLOYMENT_NW_AZS)
@@ -50,8 +41,8 @@ EOF
 
   CERTIFICATES=`$CMD -t https://$OPS_MGR_HOST -u $OPS_MGR_USR -p $OPS_MGR_PWD -k curl -p "$OPS_MGR_GENERATE_SSL_ENDPOINT" -x POST -d "$DOMAINS"`
 
-  export SSL_CERT=`echo $CERTIFICATES | jq '.certificate'`
-  export SSL_PRIVATE_KEY=`echo $CERTIFICATES | jq '.key'`
+  export SSL_CERT=`echo $CERTIFICATES | jq '.certificate' | tr -d '"'`
+  export SSL_PRIVATE_KEY=`echo $CERTIFICATES | jq '.key'  | tr -d '"'`
 
   echo "Using self signed certificates generated using Ops Manager..."
 
@@ -362,8 +353,8 @@ CF_SSL_TERM_PROPERTIES=$(cat <<-EOF
   },
   ".properties.networking_point_of_entry.haproxy.ssl_rsa_certificate": {
     "value": {
-      "cert_pem": $SSL_CERT,
-      "private_key_pem": $SSL_PRIVATE_KEY
+      "cert_pem": "$SSL_CERT",
+      "private_key_pem": "$SSL_PRIVATE_KEY"
     }
   }
 }
@@ -380,8 +371,8 @@ CF_SSL_TERM_PROPERTIES=$(cat <<-EOF
   },
   ".properties.networking_point_of_entry.external_ssl.ssl_rsa_certificate": {
     "value": {
-      "cert_pem": $SSL_CERT,
-      "private_key_pem": $SSL_PRIVATE_KEY
+      "cert_pem": "$SSL_CERT",
+      "private_key_pem": "$SSL_PRIVATE_KEY"
     }
   }
 }
