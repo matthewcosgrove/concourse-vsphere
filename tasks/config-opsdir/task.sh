@@ -71,8 +71,8 @@ EOF
 
 DIRECTOR_CONFIG=$(cat <<-EOF
 {
-  "ntp_servers_string": "0.de.pool.ntp.org",
-  "resurrector_enabled": true,
+  "ntp_servers_string": "$NTP_SERVERS",
+  "resurrector_enabled": $ENABLE_VM_RESURRECTOR,
   "database_type": "internal",
   "blobstore_type": "local"
 }
@@ -82,7 +82,8 @@ EOF
 SECURITY_CONFIG=$(cat <<-EOF
 {
   "security_configuration": {
-    "generate_vm_passwords": $GENERATE_VM_PASSWORDS
+    "generate_vm_passwords": $GENERATE_VM_PASSWORDS,
+    "trusted_certificates": "$TRUSTED_CERTIFICATES"
   }
 }
 EOF
