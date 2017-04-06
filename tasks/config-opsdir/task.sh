@@ -74,7 +74,7 @@ DIRECTOR_CONFIG=$(cat <<-EOF
   "ntp_servers_string": "$NTP_SERVERS",
   "resurrector_enabled": $ENABLE_VM_RESURRECTOR,
   "database_type": "internal",
-  "blobstore_type": "local",
+  "blobstore_type": "local"
 }
 EOF
 )
