@@ -105,7 +105,7 @@ EOF
 echo "Configuring IaaS and Director..."
 $CMD -t https://$OPS_MGR_HOST -k -u $OPS_MGR_USR -p $OPS_MGR_PWD configure-bosh \
             -i "$IAAS_CONFIGURATION" \
-            -d "$DIRECTOR_CONFIG"
+            -d '{"ntp_servers_string":"0.de.pool.ntp.org","resurrector_enabled":true,"database_type":"internal","blobstore_type":"local"}'
 
 echo "Configuring availability zones..."
 $CMD -t https://$OPS_MGR_HOST -k -u $OPS_MGR_USR -p $OPS_MGR_PWD \
