@@ -82,8 +82,7 @@ EOF
 SECURITY_CONFIG=$(cat <<-EOF
 {
   "security_configuration": {
-    "generate_vm_passwords": $GENERATE_VM_PASSWORDS,
-    "trusted_certificates": "$TRUSTED_CERTIFICATES"
+    "generate_vm_passwords": $GENERATE_VM_PASSWORDS
   }
 }
 EOF
