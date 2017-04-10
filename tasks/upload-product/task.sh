@@ -5,9 +5,9 @@ if [[ ! -z "$NO_PROXY" ]]; then
 fi
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PIVNET_CLI="${SCRIPT_DIR}/pivnet-cli/pivnet-cli"
+PIVNET_CLI="${SCRIPT_DIR}/pivnet-cli"
 echo "Retrieving pivnet client into $PIVNET_CLI"
-touch $PIVNET_CLI
+# touch $PIVNET_CLI
 wget -O $PIVNET_CLI -nc  https://github.com/pivotal-cf/pivnet-cli/releases/download/v0.0.49/pivnet-linux-amd64-0.0.49
 
 chmod +x $PIVNET_CLI
