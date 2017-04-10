@@ -1,0 +1,144 @@
+resource_types:
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+
+resources:
+- name: govc
+  type: github-release
+  source:
+    user: vmware # The GitHub username or organization name for the repository that the releases are in.
+    repository: govmomi
+    access_token: {{github_token}} ## Optional: Removing this will cause you to hit the rate limit
+
+- name: om-cli
+  type: github-release
+  source:
+    user: pivotal-cf # The GitHub username or organization name for the repository that the releases are in.
+    repository: om
+    access_token: {{github_token}} ## Optional: Removing this will cause you to hit the rate limit
+
+# - name: pivnet-cli
+#   type: github-release
+#   source:
+#     user: pivotal-cf # The GitHub username or organization name for the repository that the releases are in.
+#     repository: pivnet-cli
+#     access_token: {{github_token}} ## Optional: Removing this will cause you to hit the rate limit
+
+- name: pcf-pipelines
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/pivotal-cf/pcf-pipelines.git
+    access_token: {{github_token}}
+- name: concourse-vsphere
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/c0-ops/concourse-vsphere.git
+    access_token: {{github_token}}
+
+- name: pivnet-opsman-product
+  type: pivnet
+  source:
+    api_token: {{pivnet_token}}
+    product_slug: ops-manager
+
+# - name: elastic-runtime
+#   type: pivnet
+#   source:
+#     api_token: {{pivnet_token}}
+#     product_slug: elastic-runtime
+
+# Add my Resources
+- name: pivnet-pcf-opsman
+  type: pivnet
+  source:
+    api_token: {{pivnet_api_token}}
+    product_slug: ops-manager
+    product_version: 1\.10\.0
+
+- name: govcwrap
+  type: git
+  source:
+    branch: master
+    uri: {{git_repo_gowrap}}
+- name: pcf-vsphere
+  type: git
+  source:
+    branch: master
+    uri: {{git_repo_pcf_vsphere}}
+    username: {{git_username}}
+    password: {{git_password}}
+
+jobs:
+- name: install-opsmgr
+  plan:
+  - aggregate:
+    # Add mine
+    - get: pcf-vsphere
+      trigger: true
+    - get: govcwrap
+      trigger: true
+    - get: pivnet-pcf-opsman
+      params:
+        globs:
+        - "*vsphere*"
+    # Add mine end
+    - get: pcf-pipelines
+    - get: concourse-vsphere
+    - get: govc
+      params: {globs: ["*linux_amd64*"]}
+    - get: om-cli
+      params: {globs: ["*linux*"]}
+    - get: pivnet-opsman-product
+      params: {globs: ["*.ova"]}
+      # trigger: true
+
+  - task: deploy-opsman
+    file: pcf-vsphere/tasks/opsman/deploy-opsman-check-prereqs.yml
+    params:
+      OPSMAN_VM_IP: {{opsman_vm_ip}}
+      OPSMAN_NTP_SERVER: {{opsman_ntp_server}}
+      OPSMAN_VM_PASSWORD: {{opsman_vm_password}}
+      OPSMAN_NETWORK_NAME: {{opsman_network_name}}
+      OPSMAN_OVA: ../pivnet-pcf-opsman/pcf-vsphere-1.10.0.ova
+      OPSMAN_CUSTOM_HOSTNAME: {{opsman_custom_hostname}}
+      GOVC_URL: {{govc_url}}
+      GOVC_USERNAME: {{govc_username}}
+      GOVC_PASSWORD: {{govc_password}}
+      GOVC_DATACENTER: {{govc_datacenter}}
+      GOVC_DATASTORE: {{govc_datastore}}
+      GOVC_RESOURCE_POOL: {{govc_resource_pool}}
+      GOVC_INSECURE: {{govc_insecure}}
+    # file: pcf-pipelines/tasks/import-opsman/task.yml
+    # params:
+    #   GOVC_INSECURE: 1
+    #   GOVC_URL: {{vcenter_host}}
+    #   GOVC_USERNAME: {{vcenter_usr}}
+    #   GOVC_PASSWORD: {{vcenter_pwd}}
+    #   GOVC_DATACENTER: {{vcenter_data_center}}
+    #   GOVC_DATASTORE: {{om_data_store}}
+    #   GOVC_NETWORK: {{om_vm_network}}
+    #   GOVC_RESOURCE_POOL: {{om_resource_pool}}
+    #   OPS_MGR_SSH_PWD: {{om_ssh_pwd}}
+    #   OM_NTP_SERVERS: {{om_ntp_servers}}
+    #   OM_DNS_SERVERS: {{om_dns_servers}}
+    #   OM_GATEWAY: {{om_gateway}}
+    #   OM_NETMASK: {{om_netmask}}
+    #   OM_IP: {{om_ip}}
+    #   OM_VM_NETWORK: {{om_vm_network}}
+    #   OM_VM_NAME: {{om_vm_name}}
+    #   OM_RESOURCE_POOL: {{om_resource_pool}}
+    #   OM_DISK_TYPE: {{om_disk_type}}
+    #   OM_VM_POWER_STATE: {{om_vm_power_state}}
+
+  - task: config-opsman
+    file: pcf-pipelines/tasks/config-opsman/task.yml
+    params:
+      OPS_MGR_HOST: {{opsman_uri}}
+      OPS_MGR_USR: {{opsman_admin_username}}
+      OPS_MGR_PWD: {{opsman_admin_password}}
+      OM_DECRYPTION_PWD: {{om_decryption_pwd}}

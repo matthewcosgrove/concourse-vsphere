@@ -1,0 +1,69 @@
+resource_types:
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+
+resources:
+- name: om-cli
+  type: github-release
+  source:
+    user: pivotal-cf # The GitHub username or organization name for the repository that the releases are in.
+    repository: om
+    access_token: {{github_token}} ## Optional: Removing this will cause you to hit the rate limit
+
+- name: pivnet-cli
+  type: github-release
+  source:
+    user: pivotal-cf # The GitHub username or organization name for the repository that the releases are in.
+    repository: pivnet-cli
+    access_token: {{github_token}} ## Optional: Removing this will cause you to hit the rate limit
+
+- name: pcf-pipelines
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/pivotal-cf/pcf-pipelines.git
+    access_token: {{github_token}}
+
+- name: concourse-vsphere
+  type: git
+  source:
+    branch: single-az
+    uri: https://github.com/matthewcosgrove/concourse-vsphere.git
+    access_token: {{github_token}}
+
+- name: elastic-runtime
+  type: pivnet
+  source:
+    api_token: {{pivnet_token}}
+    product_slug: elastic-runtime
+
+
+jobs:
+- name: upload-elastic-runtime-tile
+  plan:
+  - aggregate:
+    - get: pcf-pipelines
+      trigger: true
+      # passed: [opsman-apply-changes]
+    - get: concourse-vsphere
+    - get: pivnet-product
+      resource: elastic-runtime
+      params: {globs: ["*.pivotal"]}
+    - get: om-cli
+      params: {globs: ["*linux*"]}
+      # passed: [opsman-apply-changes]
+    - get: pivnet-cli
+      params: {globs: ["*linux_amd64*"]}
+
+  - task: upload-er-tile
+    file: concourse-vsphere/tasks/upload-product/task.yml
+    params:
+      OPS_MGR_HOST: {{opsman_uri}}
+      OPS_MGR_USR: {{opsman_admin_username}}
+      OPS_MGR_PWD: {{opsman_admin_password}}
+      PIVNET_API_TOKEN: {{pivnet_token}}
+      NO_PROXY: {{company_proxy_domain}}
+      OM_IP: {{om_ip}}
